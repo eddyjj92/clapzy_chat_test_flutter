@@ -69,9 +69,7 @@ class _LoginPageState extends State<LoginPage> {
                     wsService.connect(
                       onNewPrivateChatMessage: (message, senderId) {
                         if(chatProvider.receiverId == senderId){
-                          print(chatProvider.receiverId == senderId);
-                          print('${chatProvider.receiverId} $senderId');
-                          chatProvider.addMessage(message, authProvider.user["id"],senderId);
+                          chatProvider.addMessage(message, senderId, authProvider.user["id"] );
                         }
                       },
                       onNewPrivateChatNotificationMessage: (message) {
