@@ -89,10 +89,17 @@ class WsService {
 
     privatChatNotificationMessageSub = privateChatNotificationChannel.bind('private-chat-notification').listen((event) {
       final data = jsonDecode(event.data);
+      Map<String, int> unreadMessages;
+      try {
+        unreadMessages = (data['not_read_messages'] as Map<String, dynamic>?)?.map(
+              (key, value) => MapEntry(key, (value as num).toInt()),
+        ) ?? {};
+      } catch (e) {
+        unreadMessages = {};
+      }
+      print(unreadMessages);
+      print(data['not_read_messages']);
       print(data);
-      final Map<String, int> unreadMessages = (data['unread_messages_count'] as Map<String, dynamic>?)?.map(
-            (key, value) => MapEntry(key, (value as num).toInt()),
-      ) ?? {};
       onNewPrivateChatNotificationMessage(unreadMessages);
     });
 

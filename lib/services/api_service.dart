@@ -64,9 +64,15 @@ class ApiService {
       final data = jsonDecode(response.body);
       print(data['messages']);
 
-      final Map<String, int> unreadMessages = (data['not_read_messages'] as Map<String, dynamic>?)?.map(
-            (key, value) => MapEntry(key, (value as num).toInt()),
-      ) ?? {};
+      Map<String, int> unreadMessages;
+      try {
+        unreadMessages = (data['not_read_messages'] as Map<String, dynamic>?)?.map(
+              (key, value) => MapEntry(key, (value as num).toInt()),
+        ) ?? {};
+      } catch (e) {
+        unreadMessages = {};
+      }
+
       return {
         'success': true,
         'messages': data['messages'],
@@ -74,5 +80,31 @@ class ApiService {
       };
     }
     return {'success': false};
+  }
+
+  static Future<Map<String, dynamic>> markMessagesAsRead(int senderId, String token) async {
+    print(senderId);
+    print(token);
+    final url = Uri.parse('$baseUrl/chat_messages/mark_as_read');
+    final response = await http.put(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json'
+      },
+      body: jsonEncode({'sender_id': senderId,}),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return {
+        'success': true,
+        'message': data['message'],
+      };
+    }
+    print(response.body);
+    return {
+      'success': false
+    };
   }
 }

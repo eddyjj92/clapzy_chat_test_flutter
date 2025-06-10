@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/chat_provider.dart';
+import '../services/api_service.dart';
 import '../services/ws_service.dart';
 import 'login_page.dart';
 
@@ -87,12 +88,19 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
     WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
 
     return Scaffold(
+      backgroundColor: Color(0xFFFFE4E1),
       appBar: AppBar(
-        title: const Text("Chat Clapzy"),
+        title: const Text(
+          'Clapzy Chat',
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Color(0xFFFFE4E1), // 👈 Aquí defines el color blanco
+          ),
+        ),
         backgroundColor: Colors.redAccent,
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: const Icon(Icons.logout, color: Color(0xFFFFE4E1),),
             onPressed: () {
               chatProvider.clear();
               authProvider.logout();
@@ -111,7 +119,10 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
             padding: const EdgeInsets.all(8.0),
             child: Text(
               'Usuarios conectados: ${chatProvider.cantUsersOnline}',
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.redAccent, // 👈 Aquí defines el color blanco
+              ),
             ),
           ),
           SizedBox(
@@ -132,13 +143,15 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
                       label: Text(
                         chatProvider.usersOnline[index]['referred_code']?.toString() ?? 'Loading...',
                       ),
-                      onPressed: () {
+                      onPressed:  () async {
                         print('Chip clickeado: ${chatProvider.usersOnline[index]['id']}');
                         chatProvider.setReceiverID(chatProvider.usersOnline[index]['id']);
-                        chatProvider.loadMessages(
+                        await chatProvider.loadMessages(
                           chatProvider.receiverId!,
                           authProvider.token!,
                         );
+                        final result = await ApiService.markMessagesAsRead(chatProvider.usersOnline[index]['id'], authProvider.token!);
+                        print(result);
                       },
                     ),
                     if ((chatProvider.unreadMessagesCount[chatProvider.usersOnline[index]['id'].toString()] ?? 0) > 0)
@@ -220,11 +233,13 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
               children: [
                 Expanded(
                   child: TextField(
+                    cursorColor: Colors.redAccent,
                     enabled: chatProvider.receiverId != null,  // Deshabilita si receiverId es null
                     controller: _sendMessageController,
                     decoration: InputDecoration(
                       hintText: 'Escribe un mensaje...',
                       suffixIcon: IconButton(
+                        color: Colors.redAccent,
                         icon: const Icon(Icons.send),
                         onPressed: () => _sendMessage(_sendMessageController.text),
                       ),
