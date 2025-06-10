@@ -77,6 +77,11 @@ class ChatProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  void setUnreadMessagesCount(unreadMessagesCountUpdated){
+    unreadMessagesCount = unreadMessagesCountUpdated;
+    notifyListeners();
+  }
+
   void clear() {
     _usersOnline.clear();
     _messages.clear();

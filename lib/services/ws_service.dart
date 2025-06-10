@@ -26,7 +26,7 @@ class WsService {
 
   Future<void> connect({
     required Function(String message, int senderId) onNewPrivateChatMessage,
-    required Function(String message) onNewPrivateChatNotificationMessage,
+    required Function(Map<String, int> unreadMessagesCount) onNewPrivateChatNotificationMessage,
     required Function(Map<String, dynamic> userId, int total) onSubscriptionSucceeded,
     required Function(String userId, int total) onMemberAdded,
     required Function(String userId, int total) onMemberRemoved,
@@ -87,10 +87,13 @@ class WsService {
       onNewPrivateChatMessage(data['message'], data['sender']['id']);
     });
 
-    privatChatNotificationMessageSub = privateChatNotificationChannel.bind('private-chat.notification').listen((event) {
+    privatChatNotificationMessageSub = privateChatNotificationChannel.bind('private-chat-notification').listen((event) {
       final data = jsonDecode(event.data);
       print(data);
-      onNewPrivateChatNotificationMessage(data);
+      final Map<String, int> unreadMessages = (data['unread_messages_count'] as Map<String, dynamic>?)?.map(
+            (key, value) => MapEntry(key, (value as num).toInt()),
+      ) ?? {};
+      onNewPrivateChatNotificationMessage(unreadMessages);
     });
 
     presenceSucSub = presenceChannel.whenSubscriptionSucceeded().listen((event) {

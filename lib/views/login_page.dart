@@ -72,8 +72,8 @@ class _LoginPageState extends State<LoginPage> {
                           chatProvider.addMessage(message, senderId, authProvider.user["id"] );
                         }
                       },
-                      onNewPrivateChatNotificationMessage: (message) {
-                        print(message);
+                      onNewPrivateChatNotificationMessage: (unreadMessagesCount) {
+                        chatProvider.setUnreadMessagesCount(unreadMessagesCount);
                       },
                       onSubscriptionSucceeded: (data, total) {
                         for (var id in data["presence"]["ids"]) {
