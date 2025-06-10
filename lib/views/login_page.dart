@@ -79,7 +79,7 @@ class _LoginPageState extends State<LoginPage> {
                       },
                       onSubscriptionSucceeded: (data, total) {
                         for (var id in data["presence"]["ids"]) {
-                          if(id != authProvider.user["id"]){
+                          if(int.parse(id) != authProvider.user["id"]){
                             chatProvider.addUser(id, authProvider.token);
                           }
                         }

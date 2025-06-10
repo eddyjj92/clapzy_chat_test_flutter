@@ -63,7 +63,7 @@ class WsService {
     );
 
     privateChatNotificationChannel = client.privateChannel(
-      'private-chat-notification.$userId',
+      'private-chat-notifications.$userId',
       authorizationDelegate:
       EndpointAuthorizableChannelTokenAuthorizationDelegate.forPrivateChannel(
         authorizationEndpoint:
