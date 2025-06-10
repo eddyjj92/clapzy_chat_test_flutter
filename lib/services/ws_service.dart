@@ -11,11 +11,13 @@ class WsService {
   final String authToken;
   final int userId;
   late PusherChannelsClient client;
-  late PrivateChannel privateChannel;
+  late PrivateChannel privateChatChannel;
+  late PrivateChannel privateChatNotificationChannel;
   late PresenceChannel presenceChannel;
 
   StreamSubscription? connectionSub;
-  StreamSubscription? privateMessageSub;
+  StreamSubscription? privatChatMessageSub;
+  StreamSubscription? privatChatNotificationMessageSub;
   StreamSubscription? presenceSucSub;
   StreamSubscription? presenceAddSub;
   StreamSubscription? presenceRemoveSub;
@@ -23,7 +25,8 @@ class WsService {
   WsService(this.authToken, this.userId);
 
   Future<void> connect({
-    required Function(String message, int senderId) onNewPrivateMessage,
+    required Function(String message, int senderId) onNewPrivateChatMessage,
+    required Function(String message) onNewPrivateChatNotificationMessage,
     required Function(Map<String, dynamic> userId, int total) onSubscriptionSucceeded,
     required Function(String userId, int total) onMemberAdded,
     required Function(String userId, int total) onMemberRemoved,
@@ -49,8 +52,18 @@ class WsService {
     );
 
 
-    privateChannel = client.privateChannel(
+    privateChatChannel = client.privateChannel(
       'private-chat.$userId',
+      authorizationDelegate:
+      EndpointAuthorizableChannelTokenAuthorizationDelegate.forPrivateChannel(
+        authorizationEndpoint:
+        Uri.parse('https://backend.clapzy.app/api/broadcasting/auth'),
+        headers: {'Authorization': 'Bearer $authToken'},
+      ),
+    );
+
+    privateChatNotificationChannel = client.privateChannel(
+      'private-chat-notification.$userId',
       authorizationDelegate:
       EndpointAuthorizableChannelTokenAuthorizationDelegate.forPrivateChannel(
         authorizationEndpoint:
@@ -69,37 +82,35 @@ class WsService {
       ),
     );
 
-    privateMessageSub = privateChannel.bind('private-message').listen((event) {
+    privatChatMessageSub = privateChatChannel.bind('private-message').listen((event) {
       final data = jsonDecode(event.data);
-      onNewPrivateMessage(data['message'], data['sender']['id']);
+      onNewPrivateChatMessage(data['message'], data['sender']['id']);
+    });
+
+    privatChatNotificationMessageSub = privateChatNotificationChannel.bind('private-chat.notification').listen((event) {
+      final data = jsonDecode(event.data);
+      print(data);
+      onNewPrivateChatNotificationMessage(data);
     });
 
     presenceSucSub = presenceChannel.whenSubscriptionSucceeded().listen((event) {
-      print('event.data');
-      print(jsonDecode(event.data)["presence"]);
       final count = presenceChannel.state?.members?.membersCount ?? 0;
-      print(count);
       onSubscriptionSucceeded(jsonDecode(event.data), count);
     });
 
     presenceAddSub = presenceChannel.whenMemberAdded().listen((event) {
-      print('event.data');
-      print(event.data);
-      print(event.data['user_id']);
       final count = presenceChannel.state?.members?.membersCount ?? 0;
       onMemberAdded(event.data['user_id'], count);
     });
 
     presenceRemoveSub = presenceChannel.whenMemberRemoved().listen((event) {
-      print('event.data');
-      print(event.data);
-      print(event.data['user_id']);
       final count = presenceChannel.state?.members?.membersCount ?? 0;
       onMemberRemoved(event.data['user_id'], count);
     });
 
     connectionSub = client.onConnectionEstablished.listen((_) {
-      privateChannel.subscribeIfNotUnsubscribed();
+      privateChatChannel.subscribeIfNotUnsubscribed();
+      privateChatNotificationChannel.subscribeIfNotUnsubscribed();
       presenceChannel.subscribeIfNotUnsubscribed();
     });
 
@@ -128,7 +139,7 @@ class WsService {
 
   void dispose() {
     connectionSub?.cancel();
-    privateMessageSub?.cancel();
+    privatChatMessageSub?.cancel();
     presenceAddSub?.cancel();
     presenceRemoveSub?.cancel();
     client.dispose();

@@ -39,10 +39,13 @@ class ChatProvider with ChangeNotifier {
     }
   }
 
-  Future<void> loadMessages(int senderId, String token) async {
+  Future<void> loadMessages(int? senderId, String token) async {
     try {
       isLoadingMessages = true;
-      final messagesFromApi = await ApiService.getChatMessages(senderId, token);
+      dynamic messagesFromApi = await ApiService.getChatMessages(null, token);
+      if(senderId != null){
+        messagesFromApi = await ApiService.getChatMessages(senderId, token);
+      }
 
       final List<dynamic> rawMessages = messagesFromApi["messages"] ?? [];
       unreadMessagesCount = messagesFromApi["not_read_messages"];

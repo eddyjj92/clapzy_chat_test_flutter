@@ -67,11 +67,15 @@ class _LoginPageState extends State<LoginPage> {
                     authProvider.wsService = wsService;
 
                     wsService.connect(
-                      onNewPrivateMessage: (message, senderId) {
-                        print(message);
+                      onNewPrivateChatMessage: (message, senderId) {
                         if(chatProvider.receiverId == senderId){
+                          print(chatProvider.receiverId == senderId);
+                          print('${chatProvider.receiverId} $senderId');
                           chatProvider.addMessage(message, authProvider.user["id"],senderId);
                         }
+                      },
+                      onNewPrivateChatNotificationMessage: (message) {
+                        print(message);
                       },
                       onSubscriptionSucceeded: (data, total) {
                         for (var id in data["presence"]["ids"]) {
@@ -82,13 +86,9 @@ class _LoginPageState extends State<LoginPage> {
                       },
                       onMemberAdded: (userId, total) {
                         chatProvider.addUser(userId, token);
-                        print(userId);
-                        print(total);
                       },
                       onMemberRemoved: (userId, total) {
                         chatProvider.removeUser(userId);
-                        print(userId);
-                        print(total);
                       },
                     );
 

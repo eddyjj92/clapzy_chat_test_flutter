@@ -33,6 +33,9 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
     if (!_loadedMessages && chatProvider.receiverId != null) {
       chatProvider.loadMessages(chatProvider.receiverId!, authProvider.token!);
       _loadedMessages = true;
+    }else if(!_loadedMessages){
+      chatProvider.loadMessages(null, authProvider.token!);
+      _loadedMessages = true;
     }
   }
 

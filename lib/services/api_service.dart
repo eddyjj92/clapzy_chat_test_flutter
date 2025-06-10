@@ -48,7 +48,10 @@ class ApiService {
   }
 
   static Future<Map<String, dynamic>> getChatMessages(senderId, token) async {
-    final url = Uri.parse('$baseUrl/chat_messages?sender_id=$senderId');
+    Uri url = Uri.parse('$baseUrl/chat_messages');
+    if(senderId != null){
+      url = Uri.parse('$baseUrl/chat_messages?sender_id=$senderId');
+    }
     final response = await http.get(
       url,
       headers: {
